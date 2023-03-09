@@ -62,6 +62,9 @@ jobs:
       - name: Check vars
         run: echo "${{ toJson(vars) }}"
 
+      - name: Check env
+        run: echo "${{ toJson(env) }}"
+
       # - name: Download composer
       #   uses: actions/download-artifact@v3
       #   with:
