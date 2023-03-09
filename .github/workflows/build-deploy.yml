@@ -1,0 +1,107 @@
+name: Build and Deploy
+
+on:
+  push:
+    tags:
+      - 'release-*'
+    branches:
+      - staging
+
+jobs:
+  # composer-build:
+  #   name: Build composer
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #
+  #     - name: Composer install
+  #       uses: php-actions/composer@v6
+  #
+  #     - uses: actions/upload-artifact@v3
+  #       with:
+  #         name: composer
+  #         path: public/vendor/**
+  #
+  # npm-build:
+  #   name: Build npm
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #
+  #     - name: Setup node environment
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 14
+  #
+  #     - name: Install dependencies
+  #       run: npm ci
+  #     - name: Build
+  #       run: npm run build:prod
+  #
+  #     - uses: actions/upload-artifact@v3
+  #       with:
+  #         name: node
+  #         path: public/wp-content/themes/oak-theme/dist/**
+
+  rsync-deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs:
+      - composer-build
+      - npm-build
+
+    steps:
+      # Checkout since we need .rsinclude and .gitignore
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check vars
+        run: echo "${{ toJson(vars) }}"
+
+      # - name: Download composer
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: composer
+      #     path: public/vendor/
+      # - name: Download node
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: node
+      #     path: public/wp-content/themes/oak-theme/dist/
+
+
+      # - name: Rsync
+      #   uses: burnett01/rsync-deployments@5.2
+      #   with:
+      #     switches: -avz --include-from=.rsinclude --exclude-from=.gitignore
+      #     path: ./public
+      #     remote_path: ${{vars.DEPLOY_DESTINATION}}
+      #     remote_host: ${{vars.SSH_HOST}}
+      #     remote_port: ${{vars.SSH_PORT}}
+      #     remote_user: ${{vars.SSH_USER}}
+      #     remote_password: ${{secrets.SSH_PASSWORD}}
+
+
+      # - uses: GuillaumeFalourd/setup-rsync@v1.1
+      # - name: Write password file
+      #   run: echo ${{secrets.SSH_PASSWORD}} > rsync-password.txt
+      # - name: Rsync
+      #   run: rsync -avz -e 'ssh -p $SSH_PORT' --include-from=.rsinclude --exclude-from=.gitignore --password-file=rsync-password.txt public/ $SSH_USER@$SSH_HOST:$DEPLOY_DESTINATION
+
+      # - name: Rsync
+      #   uses: up9cloud/action-rsync@v1.3
+      #   env:
+      #     USER: ${{vars.SSH_USER}}
+      #     HOST: ${{vars.SSH_HOST}}
+      #     PORT: ${{vars.SSH_PORT}}
+      #     KEY: ${{secrets.SSH_KEY}}
+      #     SOURCE: ./public
+      #     TARGET: ${{vars.DEPLOY_DESTINATION}}
+      #     ARGS: -avz --include-from=.rsinclude --exclude-from=.gitignore
+
+
+      
